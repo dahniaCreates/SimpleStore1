@@ -5,8 +5,30 @@
 #
 #   movies = Movie.create([{ name: "Star Wars" }, { name: "Lord of the Rings" }])
 #   Character.create(name: "Luke", movie: movies.first)
+require "csv"
 
-676.times do
-  Product.create(title: Faker::Food.fruits,
-                 price: Faker::Commerce.price(range: 0.99..10.0, as_string: true), stock_quantity: Faker::Number.within(range: 1..100))
+Product.destroy_all
+Category.destroy_all
+
+csv_file = Rails.root.join("db/products.csv")
+csv_data = File.read(csv_file)
+
+products = CSV.parse(csv_data, headers: true)
+
+products.each do |product|
+  # Create categories and products here.
+  category = Category.find_or_create_by(name: product["category"])
+  if category.valid? && category
+    product = category.products.create(
+      title:          product["name"],
+      description:    product["description"],
+      price:          product["price"],
+      stock_quantity: product["stock quantity"]
+    )
+    puts "Invalid product #{product['name']}" unless product&.valid?
+  else
+    puts "Invalid category #{product['category']} for products #{product['name']}."
+  end
 end
+puts "Created #{Category.count} categories."
+puts "Created #{Product.count} products."
